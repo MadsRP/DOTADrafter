@@ -149,8 +149,7 @@ def fetch_hero_data(save_to_file=True):
             processed_hero = {
                 "id": hero["id"],
                 "displayName": hero["displayName"],
-                "shortName": hero["shortName"],
-                "winRate": 50.0  # Default win rate
+                "shortName": hero["shortName"]
             }
 
             # Extract primaryAttribute from stats if available
@@ -189,11 +188,6 @@ def fetch_hero_portraits(heroes):
 
     # Create directory for hero images if it doesn't exist
     os.makedirs('static/images/heroes', exist_ok=True)
-
-    # Create placeholder image if it doesn't exist
-    placeholder_path = 'static/images/heroes/placeholder.jpg'
-    if not os.path.exists(placeholder_path):
-        create_placeholder_image()
 
     for hero in heroes:
         hero_id = hero['id']
@@ -265,51 +259,6 @@ def fetch_hero_portraits(heroes):
 
                 except Exception as od_e:
                     print(f"All download attempts failed for {hero_name}")
-
-
-def create_placeholder_image():
-    """Create a simple placeholder image"""
-    try:
-        from PIL import Image, ImageDraw, ImageFont
-
-        # Create a new image with a dark background
-        width, height = 300, 300
-        img = Image.new('RGB', (width, height), color=(45, 46, 48))
-
-        # Get a drawing context
-        d = ImageDraw.Draw(img)
-
-        # Draw text
-        text = "No Image"
-        try:
-            # Try to use a system font
-            font = ImageFont.truetype("arial.ttf", 30)
-        except:
-            # Fallback to default font
-            font = ImageFont.load_default()
-
-        # Calculate text position to center it
-        try:
-            textwidth, textheight = d.textsize(text, font)
-        except:
-            # For newer PIL versions
-            textwidth, textheight = d.textbbox((0, 0), text, font)[2:4]
-
-        x = (width - textwidth) // 2
-        y = (height - textheight) // 2
-
-        # Draw text in white
-        d.text((x, y), text, fill=(200, 200, 200), font=font)
-
-        # Save the image
-        img.save('static/images/heroes/placeholder.jpg')
-        print("Placeholder image created")
-
-    except ImportError:
-        print("PIL not available, creating empty placeholder")
-        # Create an empty file if PIL is not available
-        with open('static/images/heroes/placeholder.jpg', 'wb') as f:
-            f.write(b'')
 
 
 def fetch_match_data(limit=100, min_rank=70):

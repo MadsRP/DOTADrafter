@@ -32,27 +32,8 @@ def get_hero_data():
 @app.route('/')
 def index():
     hero_data = get_hero_data()
-    # Group heroes by primary attribute (str, agi, int)
-    heroes_by_attribute = {
-        'strength': [],
-        'agility': [],
-        'intelligence': [],
-        'universal': []
-    }
-
-    for hero in hero_data:
-        attribute = hero.get('primaryAttribute', 'universal').lower()
-        if attribute in heroes_by_attribute:
-            heroes_by_attribute[attribute].append(hero)
-
-    return render_template('index.html', heroes_by_attribute=heroes_by_attribute)
-
-
-# New route to show all hero portraits
-@app.route('/portraits')
-def portraits():
-    hero_data = get_hero_data()
-    return render_template('portraits.html', heroes=hero_data)
+    print(hero_data)
+    return render_template('index.html', heroes=hero_data)
 
 
 # API endpoint to get counter picks
