@@ -197,7 +197,7 @@ def fetch_hero_portraits(heroes):
 
     for hero in heroes:
         hero_id = hero['id']
-        hero_name = hero['displayName']
+        hero_name = hero['shortName']
 
         # Path to save the image
         image_path = f"static/images/heroes/{hero_id}.jpg"
