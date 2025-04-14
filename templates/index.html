@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dota 2 Hero Drafter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Dota 2 Hero Drafter</h1>
+        <p>Create optimal drafts with hero counter-picks and synergies</p>
+    </header>
+
+    <div class="draft-container">
+        <!-- Radiant Team -->
+        <div class="team-draft radiant">
+            <div class="team-header">
+                <h2 class="radiant-title">Radiant</h2>
+                <span class="draft-phase" id="radiant-phase">Picking Phase</span>
+            </div>
+
+            <div class="section-title">Bans</div>
+            <div class="picks-bans" id="radiant-bans">
+                <!-- Will be populated with selected bans -->
+                <div class="empty-slot">Ban 1</div>
+                <div class="empty-slot">Ban 2</div>
+                <div class="empty-slot">Ban 3</div>
+                <div class="empty-slot">Ban 4</div>
+                <div class="empty-slot">Ban 5</div>
+                <div class="empty-slot">Ban 6</div>
+            </div>
+
+            <div class="section-title">Picks</div>
+            <div class="picks-bans" id="radiant-picks">
+                <!-- Will be populated with selected picks -->
+                <div class="empty-slot">Pick 1</div>
+                <div class="empty-slot">Pick 2</div>
+                <div class="empty-slot">Pick 3</div>
+                <div class="empty-slot">Pick 4</div>
+                <div class="empty-slot">Pick 5</div>
+            </div>
+        </div>
+
+        <!-- Dire Team -->
+        <div class="team-draft dire">
+            <div class="team-header">
+                <h2 class="dire-title">Dire</h2>
+                <span class="draft-phase" id="dire-phase">Waiting...</span>
+            </div>
+
+            <div class="section-title">Bans</div>
+            <div class="picks-bans" id="dire-bans">
+                <!-- Will be populated with selected bans -->
+                <div class="empty-slot">Ban 1</div>
+                <div class="empty-slot">Ban 2</div>
+                <div class="empty-slot">Ban 3</div>
+                <div class="empty-slot">Ban 4</div>
+                <div class="empty-slot">Ban 5</div>
+                <div class="empty-slot">Ban 6</div>
+            </div>
+
+            <div class="section-title">Picks</div>
+            <div class="picks-bans" id="dire-picks">
+                <!-- Will be populated with selected picks -->
+                <div class="empty-slot">Pick 1</div>
+                <div class="empty-slot">Pick 2</div>
+                <div class="empty-slot">Pick 3</div>
+                <div class="empty-slot">Pick 4</div>
+                <div class="empty-slot">Pick 5</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="recommendations" id="recommendations-container">
+        <div class="recommendation-header">
+            <h2>Recommended Heroes</h2>
+            <div>Current team: <strong id="current-team" class="radiant-title">Radiant</strong></div>
+            <div class="action-type">
+                <button id="pick-btn" class="active">Pick</button>
+                <button id="ban-btn">Ban</button>
+            </div>
+        </div>
+
+        <div class="hero-recommendations" id="hero-recommendations">
+            <!-- Will be populated with recommendations -->
+        </div>
+    </div>
+
+    <div class="hero-grid-container">
+        <div class="hero-search">
+            <input type="text" id="hero-search" placeholder="Search heroes...">
+        </div>
+
+        <div class="hero-attributes">
+            <div class="attribute-section">
+                <h3>Strength</h3>
+                <div class="hero-grid" id="strength-heroes">
+                    {% for hero in heroes_by_attribute.strength %}
+                    <div class="hero-grid-item" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}" data-win-rate="{{ hero.winRate }}">
+                        <img src="{{ url_for('static', filename='images/heroes/' + hero.id|string + '.jpg') }}" alt="{{ hero.displayName }}" onerror="this.src='{{ url_for('static', filename='images/heroes/placeholder.jpg') }}'">
+                        <div class="hero-win-rate">{{ hero.winRate }}%</div>
+                        <div class="hero-name">{{ hero.displayName }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="attribute-section">
+                <h3>Agility</h3>
+                <div class="hero-grid" id="agility-heroes">
+                    {% for hero in heroes_by_attribute.agility %}
+                    <div class="hero-grid-item" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}" data-win-rate="{{ hero.winRate }}">
+                        <img src="{{ url_for('static', filename='images/heroes/' + hero.id|string + '.jpg') }}" alt="{{ hero.displayName }}" onerror="this.src='{{ url_for('static', filename='images/heroes/placeholder.jpg') }}'">
+                        <div class="hero-win-rate">{{ hero.winRate }}%</div>
+                        <div class="hero-name">{{ hero.displayName }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="attribute-section">
+                <h3>Intelligence</h3>
+                <div class="hero-grid" id="intelligence-heroes">
+                    {% for hero in heroes_by_attribute.intelligence %}
+                    <div class="hero-grid-item" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}" data-win-rate="{{ hero.winRate }}">
+                        <img src="{{ url_for('static', filename='images/heroes/' + hero.id|string + '.jpg') }}" alt="{{ hero.displayName }}" onerror="this.src='{{ url_for('static', filename='images/heroes/placeholder.jpg') }}'">
+                        <div class="hero-win-rate">{{ hero.winRate }}%</div>
+                        <div class="hero-name">{{ hero.displayName }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="attribute-section">
+                <h3>Universal</h3>
+                <div class="hero-grid" id="universal-heroes">
+                    {% for hero in heroes_by_attribute.universal %}
+                    <div class="hero-grid-item" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}" data-win-rate="{{ hero.winRate }}">
+                        <img src="{{ url_for('static', filename='images/heroes/' + hero.id|string + '.jpg') }}" alt="{{ hero.displayName }}" onerror="this.src='{{ url_for('static', filename='images/heroes/placeholder.jpg') }}'">
+                        <div class="hero-win-rate">{{ hero.winRate }}%</div>
+                        <div class="hero-name">{{ hero.displayName }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="draft-tools">
+        <button id="reset-draft">Reset Draft</button>
+        <button id="next-step">Next Step</button>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
