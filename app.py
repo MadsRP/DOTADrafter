@@ -1,10 +1,13 @@
 # app.py - Main Flask application
-from flask import Flask, render_template, request, jsonify
-import os
 import json
-from data_collector import fetch_hero_data, fetch_match_data
+import os
+
+from flask import Flask, render_template, request, jsonify
+
+from data_collector import fetch_hero_data, fetch_hero_portraits
 
 app = Flask(__name__)
+
 
 # Load or fetch hero data
 def get_hero_data():
@@ -16,9 +19,14 @@ def get_hero_data():
         # Fetch fresh hero data
         os.makedirs('data', exist_ok=True)
         heroes = fetch_hero_data()
+
+        # Download hero portraits
+        fetch_hero_portraits(heroes)
         with open('data/heroes.json', 'w') as f:
             json.dump(heroes, f)
+
         return heroes
+
 
 # Home page route
 @app.route('/')
@@ -39,6 +47,14 @@ def index():
 
     return render_template('index.html', heroes_by_attribute=heroes_by_attribute)
 
+
+# New route to show all hero portraits
+@app.route('/portraits')
+def portraits():
+    hero_data = get_hero_data()
+    return render_template('portraits.html', heroes=hero_data)
+
+
 # API endpoint to get counter picks
 @app.route('/api/counterpicks', methods=['POST'])
 def get_counterpicks():
@@ -53,6 +69,7 @@ def get_counterpicks():
             {'id': 1, 'name': 'Anti-Mage', 'winRate': 53.2, 'reasons': ['Counter to enemy cores']}
         ]
     })
+
 
 if __name__ == '__main__':
     app.run(debug=True)

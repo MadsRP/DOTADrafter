@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dota 2 Hero Drafter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
 <div class="container">
@@ -151,9 +151,16 @@
     <div class="draft-tools">
         <button id="reset-draft">Reset Draft</button>
         <button id="next-step">Next Step</button>
+        <a href="/portraits" class="btn">View All Hero Portraits</a>
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<div>
+    <ul>
+
+    </ul>
+</div>
+<!-- Fix for JavaScript file path -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
