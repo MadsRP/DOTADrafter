@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e690a814-bc35-47cb-b4c9-aac89c82d4f4" name="Changes" comment="Start of Project">
+    <list default="true" id="e690a814-bc35-47cb-b4c9-aac89c82d4f4" name="Changes" comment="Full List of Heroes gotten from API.">
       <change afterPath="$PROJECT_DIR$/enviromentvariables.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data_collector.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_collector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/portraits.css" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/portraits.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +76,7 @@
       <option name="presentableId" value="Default" />
       <updated>1744634377486</updated>
       <workItem from="1744634379193" duration="2951000" />
-      <workItem from="1744637369125" duration="5326000" />
+      <workItem from="1744637369125" duration="8070000" />
     </task>
     <task id="LOCAL-00001" summary="Start of Project">
       <created>1744636337708</created>
@@ -109,7 +106,14 @@
       <option name="project" value="LOCAL" />
       <updated>1744641737200</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Full List of Heroes gotten from API.">
+      <created>1744642763485</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1744642763485</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -128,10 +132,11 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Start of Project" />
-    <option name="LAST_COMMIT_MESSAGE" value="Start of Project" />
+    <MESSAGE value="Full List of Heroes gotten from API." />
+    <option name="LAST_COMMIT_MESSAGE" value="Full List of Heroes gotten from API." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/DOTADrafter$data_collector.coverage" NAME="data_collector Coverage Results" MODIFIED="1744641714040" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/DOTADrafter$app.coverage" NAME="app Coverage Results" MODIFIED="1744642613940" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DOTADrafter$data_collector.coverage" NAME="data_collector Coverage Results" MODIFIED="1744645294499" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DOTADrafter$app.coverage" NAME="app Coverage Results" MODIFIED="1744645255029" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

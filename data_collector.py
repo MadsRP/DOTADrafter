@@ -149,7 +149,8 @@ def fetch_hero_data(save_to_file=True):
             processed_hero = {
                 "id": hero["id"],
                 "displayName": hero["displayName"],
-                "shortName": hero["shortName"]
+                "shortName": hero["shortName"],
+                "winRate": 50
             }
 
             # Extract primaryAttribute from stats if available
@@ -162,6 +163,8 @@ def fetch_hero_data(save_to_file=True):
             heroes.append(processed_hero)
     else:
         print("Failed to fetch hero data from API, using placeholder data")
+
+    heroes.sort(key=lambda x: x['displayName'].lower())
 
     # Save to file if requested
     if save_to_file:
@@ -205,7 +208,7 @@ def fetch_hero_portraits(heroes):
 
         try:
             # Use Valve's CDN for hero portraits
-            image_url = f"https://cdn.dota2.com/apps/dota2/images/heroes/{valve_name}_full.png"
+            image_url = f"https://cdn.dota2.com/apps/dota2/images/heroes/{valve_name}_vert.jpg"
 
             print(f"Trying to download from: {image_url}")
 
