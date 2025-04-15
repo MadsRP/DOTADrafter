@@ -309,26 +309,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function resetDraft() {
-        // Reset draft state
-        draftState.step = 0;
-        draftState.radiant.picks = [];
-        draftState.radiant.bans = [];
-        draftState.dire.picks = [];
-        draftState.dire.bans = [];
-
-        // Update UI
-        updateDraftUI();
-        updateTeamIndicator();
-
-        // Get new recommendations
-        requestRecommendations();
-
-        // Re-enable buttons
-        document.getElementById('pick-btn').disabled = false;
-        document.getElementById('ban-btn').disabled = false;
-    }
-
     function nextStep() {
         // If we're following draft order and not at the end
         if (draftState.step < draftOrder.length) {
@@ -351,5 +331,88 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
             }
         }
+    }
+
+    /**
+     * Update the hero grid to hide heroes that have been drafted
+     */
+    function updateHeroGridVisibility() {
+        // Get all selected hero IDs
+        const selectedHeroIds = [];
+
+        // Add Radiant picks and bans
+        draftState.radiant.picks.forEach(hero => selectedHeroIds.push(hero.id));
+        draftState.radiant.bans.forEach(hero => selectedHeroIds.push(hero.id));
+
+        // Add Dire picks and bans
+        draftState.dire.picks.forEach(hero => selectedHeroIds.push(hero.id));
+        draftState.dire.bans.forEach(hero => selectedHeroIds.push(hero.id));
+
+        // Update all hero grid items
+        document.querySelectorAll('.hero-grid-item').forEach(heroItem => {
+            const heroId = parseInt(heroItem.dataset.id);
+
+            if (selectedHeroIds.includes(heroId)) {
+                // Hide heroes that have been picked or banned
+                heroItem.classList.add('drafted');
+            } else {
+                // Ensure visible heroes don't have the drafted class
+                heroItem.classList.remove('drafted');
+            }
+        });
+    }
+
+// Call this function after selecting a hero
+// Update the selectHero function to include this call
+    function selectHero(heroId, heroName) {
+        // Existing code...
+
+        // Add hero to current team's selections
+        const actionType = draftState.currentAction + 's'; // 'picks' or 'bans'
+        draftState[draftState.currentTeam][actionType].push({
+            id: heroId,
+            name: heroName
+        });
+
+        // Update UI
+        updateDraftUI();
+
+        // Hide drafted heroes in the grid
+        updateHeroGridVisibility();
+
+        // Move to next step in draft order
+        if (draftState.step < draftOrder.length) {
+            draftState.step++;
+
+            // Update team indicator
+            updateTeamIndicator();
+
+            // Get new recommendations
+            requestRecommendations();
+        }
+    }
+
+// Also call updateHeroGridVisibility in the resetDraft function
+    function resetDraft() {
+        // Reset draft state
+        draftState.step = 0;
+        draftState.radiant.picks = [];
+        draftState.radiant.bans = [];
+        draftState.dire.picks = [];
+        draftState.dire.bans = [];
+
+        // Update UI
+        updateDraftUI();
+        updateTeamIndicator();
+
+        // Reset hero grid visibility
+        updateHeroGridVisibility();
+
+        // Get new recommendations
+        requestRecommendations();
+
+        // Re-enable buttons
+        document.getElementById('pick-btn').disabled = false;
+        document.getElementById('ban-btn').disabled = false;
     }
 });

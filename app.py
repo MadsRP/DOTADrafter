@@ -32,7 +32,6 @@ def get_hero_data():
 @app.route('/')
 def index():
     hero_data = get_hero_data()
-    print(hero_data)
     return render_template('index.html', heroes=hero_data)
 
 

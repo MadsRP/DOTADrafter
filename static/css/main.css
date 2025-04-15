@@ -1,0 +1,89 @@
+/* main.css - Overall styling and layout */
+
+:root {
+    --radiant-color: #92a525;
+    --dire-color: #c23c2a;
+    --background-color: #1d1e20;
+    --text-color: #e0e0e0;
+    --panel-color: #2d2e30;
+    --highlight-color: #4765e8;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 90%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+button {
+    background-color: var(--highlight-color);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #3a59ea;
+}
+
+button.active {
+    background-color: #36881f;
+    box-shadow: 0 0 5px rgba(28, 201, 57, 0.7);
+}
+
+.main-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.hero-grid-wrapper {
+    flex: 3;
+    overflow-y: auto;
+    max-height: 90vh;
+}
+
+.draft-ui-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 20px;
+}
+
+/* Search input styling */
+.hero-search {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.hero-search input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--text-color);
+    border-radius: 4px;
+}

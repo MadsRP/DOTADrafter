@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dota 2 Hero Drafter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Load CSS files in order from most general to most specific -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/hero-grid.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/drafter.css') }}">
 </head>
 <body>
 <div class="container">
@@ -19,31 +22,36 @@
         <div class="hero-search">
             <input type="text" id="hero-search" placeholder="Search heroes...">
         </div>
+
+
         <div class="attribute-grid">
-        <div class="attribute-section strength">
-            <h2>Strength Heroes</h2>
-            <div class="hero-grid">
-                {% for hero in heroes %}
-                {% if hero.primaryAttribute == "str" %}
-                <div class="hero-card">
-                    <div class="hero-image">
-                        <div class="hero-win-rate">{{ hero.winRate }}%</div>
-                        <img src="{{ url_for('static', filename='/images/heroes/' + hero.id|string + '.jpg') }}"
-                             alt="{{ hero.displayName }}"
-                             title="{{ hero.displayName}}">
+
+            <!-- Example for Strength Heroes section -->
+            <div class="attribute-section strength">
+                <h2>Strength Heroes</h2>
+                <div class="hero-grid">
+                    {% for hero in heroes %}
+                    {% if hero.primaryAttribute == "str" %}
+                    <div class="hero-grid-item hero-card" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}">
+                        <div class="hero-image">
+                            <div class="hero-win-rate">{{ hero.winRate }}%</div>
+                            <img src="{{ url_for('static', filename='images/heroes/' + hero.id|string + '.jpg') }}"
+                                 alt="{{ hero.displayName }}"
+                                 title="{{ hero.displayName }}">
+                        </div>
                     </div>
+                    {% endif %}
+                    {% endfor %}
                 </div>
-                {% endif %}
-                {% endfor %}
             </div>
-        </div>
+
 
         <div class="attribute-section agility">
             <h2>Agility Heroes</h2>
             <div class="hero-grid">
                 {% for hero in heroes %}
                 {% if hero.primaryAttribute == "agi" %}
-                <div class="hero-card">
+                <div class="hero-grid-item hero-card" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}">
                     <div class="hero-image">
                         <div class="hero-win-rate">{{ hero.winRate }}%</div>
                         <img src="{{ url_for('static', filename='/images/heroes/' + hero.id|string + '.jpg') }}"
@@ -61,7 +69,7 @@
             <div class="hero-grid">
                 {% for hero in heroes %}
                 {% if hero.primaryAttribute == "int" %}
-                <div class="hero-card">
+                <div class="hero-grid-item hero-card" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}">
                     <div class="hero-image">
                         <div class="hero-win-rate">{{ hero.winRate }}%</div>
                         <img src="{{ url_for('static', filename='images/heroes/' + hero.id|string + '.jpg') }}"
@@ -80,7 +88,7 @@
             <div class="hero-grid">
                 {% for hero in heroes %}
                 {% if hero.primaryAttribute == "all" or not hero.primaryAttribute %}
-                <div class="hero-card">
+                <div class="hero-grid-item hero-card" data-id="{{ hero.id }}" data-name="{{ hero.displayName }}">
                     <div class="hero-image">
                         <div class="hero-win-rate">{{ hero.winRate }}%</div>
                         <img src="{{ url_for('static', filename='images/heroes/' + hero.id|string + '.jpg') }}"
@@ -97,8 +105,20 @@
 </div>
     <!-- Right side: Drafting UI -->
     <div class="draft-ui-wrapper">
-        <!-- everything from .draft-container and recommendations -->
+
+        <div class="current-team">
+            <h3>Current Team: <span id="current-team">Radiant</span></h3>
+            <div class="action-buttons">
+                <button id="pick-btn" class="active">Pick</button>
+                <button id="ban-btn">Ban</button>
+            </div>
+        </div>
+        <div class="draft-tools">
+            <button id="reset-draft">Reset Draft</button>
+            <button id="next-step">Next Step</button>
+        </div>
         <div class="draft-container">
+
             <!-- Radiant Team -->
             <div class="team-draft radiant">
                 <div class="team-header">
@@ -156,10 +176,7 @@
             </div>
         </div>
 
-        <div class="draft-tools">
-            <button id="reset-draft">Reset Draft</button>
-            <button id="next-step">Next Step</button>
-        </div>
+
     </div>
 </div>
 
