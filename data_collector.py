@@ -271,7 +271,7 @@ def fetch_hero_portraits(heroes):
                     print(f"All download attempts failed for {hero_name}")
 
 
-def fetch_match_data(limit=100, min_rank=70):
+def fetch_match_data(limit=100, min_rank=95):
     """
     Fetch recent public matches data
 

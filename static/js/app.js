@@ -1,4 +1,4 @@
-// Enhanced app.js - Sort heroes by win rate within each attribute section
+// Enhanced app.js - Updated win rate border styling
 document.addEventListener('DOMContentLoaded', function() {
     // Draft state (same as before)
     const draftState = {
@@ -8,23 +8,48 @@ document.addEventListener('DOMContentLoaded', function() {
         radiant: { picks: [], bans: [] },
         dire: { picks: [], bans: [] }
     };
+    let isCalculatingWinRates = false;
 
     let originalHeroData = {};
     let isDraftComplete = false;
 
     // Draft order (same as before)
     const draftOrder = [
-        { team: 'radiant', action: 'ban' }, { team: 'dire', action: 'ban' },
-        { team: 'radiant', action: 'ban' }, { team: 'dire', action: 'ban' },
-        { team: 'radiant', action: 'pick' }, { team: 'dire', action: 'pick' },
-        { team: 'dire', action: 'pick' }, { team: 'radiant', action: 'pick' },
-        { team: 'radiant', action: 'ban' }, { team: 'dire', action: 'ban' },
-        { team: 'radiant', action: 'ban' }, { team: 'dire', action: 'ban' },
-        { team: 'dire', action: 'pick' }, { team: 'radiant', action: 'pick' },
-        { team: 'radiant', action: 'pick' }, { team: 'dire', action: 'pick' },
-        { team: 'dire', action: 'ban' }, { team: 'radiant', action: 'ban' },
-        { team: 'dire', action: 'ban' }, { team: 'radiant', action: 'ban' },
-        { team: 'dire', action: 'pick' }, { team: 'radiant', action: 'pick' }
+        // Phase 1: Initial bans (7 bans)
+        { team: 'radiant', action: 'ban' },    // 1
+        { team: 'dire', action: 'ban' },       // 2
+        { team: 'dire', action: 'ban' },       // 3
+        { team: 'radiant', action: 'ban' },    // 4
+        { team: 'dire', action: 'ban' },       // 5
+        { team: 'dire', action: 'ban' },       // 6
+        { team: 'radiant', action: 'ban' },    // 7
+
+        // Phase 2: First picks (2 picks)
+        { team: 'radiant', action: 'pick' },   // 8
+        { team: 'dire', action: 'pick' },      // 9
+
+        // Phase 3: Mid-draft bans (3 bans)
+        { team: 'radiant', action: 'ban' },    // 10
+        { team: 'radiant', action: 'ban' },    // 11
+        { team: 'dire', action: 'ban' },       // 12
+
+        // Phase 4: Core picks (6 picks)
+        { team: 'dire', action: 'pick' },      // 13
+        { team: 'radiant', action: 'pick' },   // 14
+        { team: 'radiant', action: 'pick' },   // 15
+        { team: 'dire', action: 'pick' },      // 16
+        { team: 'dire', action: 'pick' },      // 17
+        { team: 'radiant', action: 'pick' },   // 18
+
+        // Phase 5: Final bans (4 bans)
+        { team: 'radiant', action: 'ban' },    // 19
+        { team: 'dire', action: 'ban' },       // 20
+        { team: 'dire', action: 'ban' },       // 21
+        { team: 'radiant', action: 'ban' },    // 22
+
+        // Phase 6: Final picks (2 picks)
+        { team: 'radiant', action: 'pick' },   // 23
+        { team: 'dire', action: 'pick' }       // 24
     ];
 
     // Store attribute section containers for sorting
@@ -47,6 +72,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add click handlers to all hero cards
         document.querySelectorAll('.hero-card').forEach(heroCard => {
             heroCard.addEventListener('click', function() {
+                // PREVENT CLICKS during ML calculation
+                if (isCalculatingWinRates) {
+                    showLoadingMessage();
+                    return;
+                }
+
                 if (isDraftComplete) {
                     alert('Draft is complete! Use Reset Draft to start over.');
                     return;
@@ -68,8 +99,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Rest of event listeners (same as before)
-        document.getElementById('reset-draft')?.addEventListener('click', resetDraft);
-        document.getElementById('next-step')?.addEventListener('click', nextStep);
+        document.getElementById('reset-draft')?.addEventListener('click', function() {
+            if (isCalculatingWinRates) {
+                showLoadingMessage();
+                return;
+            }
+            resetDraft();
+        });
+
+        document.getElementById('next-step')?.addEventListener('click', function() {
+            if (isCalculatingWinRates) {
+                showLoadingMessage();
+                return;
+            }
+            nextStep();
+        });
 
         document.getElementById('hero-search')?.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
@@ -92,14 +136,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     name: img.alt || img.title,
                     originalWinRate: winRateEl.textContent,
                     heroCard: heroCard,
-                    attribute: getHeroAttribute(heroCard) // Store which section this hero belongs to
+                    attribute: getHeroAttribute(heroCard)
                 };
             }
         });
     }
 
     function getHeroAttribute(heroCard) {
-        // Determine which attribute section this hero belongs to
         const strengthSection = document.querySelector('.strength .hero-grid');
         const agilitySection = document.querySelector('.agility .hero-grid');
         const intelligenceSection = document.querySelector('.intelligence .hero-grid');
@@ -115,48 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function extractHeroId(imgElement) {
         const match = imgElement.src.match(/heroes\/(\d+)\.jpg/);
         return match ? parseInt(match[1]) : 0;
-    }
-
-    function selectHero(heroId, heroName) {
-        if (isDraftComplete) return;
-
-        // Follow draft order
-        if (draftState.step < draftOrder.length) {
-            const currentDraftStep = draftOrder[draftState.step];
-            draftState.currentTeam = currentDraftStep.team;
-            draftState.currentAction = currentDraftStep.action;
-        }
-
-        // Add hero to current team's selections
-        const actionType = draftState.currentAction + 's';
-        draftState[draftState.currentTeam][actionType].push({
-            id: heroId,
-            name: heroName
-        });
-
-        // Update UI
-        updateDraftUI();
-        updateHeroAvailability(heroId, false);
-
-        // Move to next step
-        if (draftState.step < draftOrder.length) {
-            draftState.step++;
-
-            if (draftState.step >= draftOrder.length) {
-                isDraftComplete = true;
-                console.log('Draft completed!');
-            }
-
-            updateTeamIndicator();
-
-            if (!isDraftComplete) {
-                setTimeout(() => {
-                    requestRecommendations();
-                }, 300);
-            } else {
-                showFinalDraftAnalysis();
-            }
-        }
     }
 
     function updateHeroAvailability(heroId, available) {
@@ -196,6 +197,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function requestRecommendations() {
         if (isDraftComplete || draftState.step >= draftOrder.length) return;
 
+        // START LOADING STATE
+        setLoadingState(true);
         showLoadingRecommendations();
 
         const requestData = {
@@ -211,64 +214,45 @@ document.addEventListener('DOMContentLoaded', function() {
             currentAction: draftState.currentAction
         };
 
+        // Make TWO API calls: one for recommendations, one for all hero win rates
         Promise.all([
+            // Get recommendations
             fetch('/api/counterpicks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData)
             }).then(response => response.json()),
 
-            calculateAllHeroWinRates(requestData)
+            // Get ALL hero win rates
+            fetch('/api/hero-winrates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            }).then(response => response.json())
         ])
-            .then(([recommendationsData, allWinRates]) => {
+            .then(([recommendationsData, winRatesData]) => {
                 displayRecommendations(recommendationsData.recommendations || []);
                 displayDraftAnalysis(recommendationsData.analysis);
 
-                // NEW: Update win rates AND sort heroes
-                updateAllHeroWinRatesAndSort(allWinRates);
+                // Update ALL hero win rates and sort
+                if (winRatesData.hero_winrates) {
+                    updateAllHeroWinRatesAndSort(winRatesData.hero_winrates);
+                }
             })
             .catch(error => {
-                console.error('Error fetching recommendations:', error);
+                console.error('Error fetching data:', error);
                 displayRecommendations([]);
+            })
+            .finally(() => {
+                // END LOADING STATE
+                setLoadingState(false);
             });
     }
 
-    function calculateAllHeroWinRates(requestData) {
-        return new Promise((resolve) => {
-            const allWinRates = {};
-            const selectedHeroIds = new Set([
-                ...requestData.radiant.picks, ...requestData.radiant.bans,
-                ...requestData.dire.picks, ...requestData.dire.bans
-            ]);
 
-            document.querySelectorAll('.hero-card img').forEach(img => {
-                const heroId = extractHeroId(img);
-                if (heroId) {
-                    if (selectedHeroIds.has(heroId)) {
-                        allWinRates[heroId] = 0; // Unavailable
-                    } else {
-                        const draftComplexity = selectedHeroIds.size;
-                        const heroVariance = (heroId * 7) % 40;
-                        const baseRate = 35 + heroVariance;
-
-                        const teamBalance = Math.abs(requestData.radiant.picks.length - requestData.dire.picks.length);
-                        const adjustment = (teamBalance * 2) + (draftComplexity * 0.5);
-
-                        const finalRate = Math.max(25, Math.min(75, baseRate + adjustment - 20));
-                        allWinRates[heroId] = Math.round(finalRate * 10) / 10;
-                    }
-                }
-            });
-
-            setTimeout(() => resolve(allWinRates), 100);
-        });
-    }
-
-    // NEW: Update win rates AND sort heroes by win rate within each attribute section
     function updateAllHeroWinRatesAndSort(allWinRates) {
         console.log('Updating win rates and sorting heroes...');
 
-        // First, update all win rates
         const heroesData = [];
 
         document.querySelectorAll('.hero-card').forEach(heroCard => {
@@ -284,18 +268,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (newWinRate === 0) {
                         winRateEl.textContent = 'N/A';
+                        // Reset styling for unavailable heroes
                         heroCard.style.border = '';
                         heroCard.style.boxShadow = '';
                     } else {
                         winRateEl.textContent = `${newWinRate}%`;
 
-                        if (newWinRate >= 60) {
+                        // Apply green border styling
+                        if (newWinRate >= 56) {
+                            // Strong pick - bright green border with stronger glow
                             heroCard.style.border = '2px solid #4CAF50';
-                            heroCard.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.4)';
-                        } else if (newWinRate <= 35) {
-                            heroCard.style.border = '2px solid #f44336';
-                            heroCard.style.boxShadow = '0 0 10px rgba(244, 67, 54, 0.4)';
+                            heroCard.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.6)';
+                        } else if (newWinRate >= 51) {
+                            // Good pick - lighter green border with subtle glow
+                            heroCard.style.border = '2px solid #81C784';
+                            heroCard.style.boxShadow = '0 0 8px rgba(129, 199, 132, 0.4)';
                         } else {
+                            // Average or below - no special border
                             heroCard.style.border = '';
                             heroCard.style.boxShadow = '';
                         }
@@ -313,13 +302,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Now sort and reorder heroes within each attribute section
+        // Sort and reorder heroes within each attribute section
         sortHeroesByWinRate(heroesData);
 
-        console.log(`Updated and sorted win rates for ${Object.keys(allWinRates).length} heroes`);
+        console.log(`✅ Updated and sorted win rates for ${Object.keys(allWinRates).length} heroes`);
     }
 
-    // NEW: Sort heroes by win rate within each attribute section
+
     function sortHeroesByWinRate(heroesData) {
         // Group heroes by attribute
         const heroesByAttribute = {
@@ -375,34 +364,34 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTeamSelections('dire', 'bans');
     }
 
+    // Update the HTML template to match - you'll need 6 ban slots per team
     function updateTeamSelections(team, actionType) {
         const container = document.getElementById(`${team}-${actionType}`);
         if (!container) return;
 
         const selections = draftState[team][actionType];
-        container.innerHTML = '';
 
-        selections.forEach(hero => {
-            const heroElement = document.createElement('div');
-            heroElement.className = actionType === 'picks' ? 'pick' : 'ban';
-            heroElement.innerHTML = `
+        // Get all slots (both filled and empty) from your HTML template
+        const allSlots = container.querySelectorAll('.pick, .ban, .empty-slot');
+
+        // Fill in the selections without destroying your draft order numbers
+        selections.forEach((hero, index) => {
+            if (allSlots[index]) {
+                // Replace empty slot with hero
+                const heroElement = document.createElement('div');
+                heroElement.className = actionType === 'picks' ? 'pick' : 'ban';
+                heroElement.innerHTML = `
                 <img src="/static/images/heroes/${hero.id}.jpg" alt="${hero.name}" 
                      onerror="this.src='/static/images/heroes/placeholder.jpg'">
             `;
-            container.appendChild(heroElement);
+
+                // Replace the empty slot with the hero element
+                allSlots[index].replaceWith(heroElement);
+            }
         });
-
-        const maxSlots = actionType === 'picks' ? 5 : 6;
-        const emptySlots = maxSlots - selections.length;
-
-        for (let i = 0; i < emptySlots; i++) {
-            const emptySlot = document.createElement('div');
-            emptySlot.className = 'empty-slot';
-            emptySlot.textContent = `${actionType.slice(0, -1).charAt(0).toUpperCase() + actionType.slice(0, -1).slice(1)} ${selections.length + i + 1}`;
-            container.appendChild(emptySlot);
-        }
     }
 
+// Update the phase indicator to be more descriptive
     function updateTeamIndicator() {
         if (draftState.step < draftOrder.length && !isDraftComplete) {
             const currentDraftStep = draftOrder[draftState.step];
@@ -413,7 +402,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentTeamEl.className = `${currentDraftStep.team}-title`;
             }
 
-            const phaseText = `${currentDraftStep.action.charAt(0).toUpperCase() + currentDraftStep.action.slice(1)}ing Phase`;
+            // More descriptive phase text based on draft position
+            let phaseText = '';
+            const step = draftState.step + 1;
+
+            if (step <= 7) {
+                phaseText = `Initial ${currentDraftStep.action.charAt(0).toUpperCase() + currentDraftStep.action.slice(1)}`;
+            } else if (step <= 9) {
+                phaseText = `First ${currentDraftStep.action.charAt(0).toUpperCase() + currentDraftStep.action.slice(1)}`;
+            } else if (step <= 12) {
+                phaseText = `Mid ${currentDraftStep.action.charAt(0).toUpperCase() + currentDraftStep.action.slice(1)}`;
+            } else if (step <= 18) {
+                phaseText = `Core ${currentDraftStep.action.charAt(0).toUpperCase() + currentDraftStep.action.slice(1)}`;
+            } else if (step <= 22) {
+                phaseText = `Final ${currentDraftStep.action.charAt(0).toUpperCase() + currentDraftStep.action.slice(1)}`;
+            } else {
+                phaseText = `Last ${currentDraftStep.action.charAt(0).toUpperCase() + currentDraftStep.action.slice(1)}`;
+            }
+
             const currentPhaseEl = document.getElementById(`${currentDraftStep.team}-phase`);
             if (currentPhaseEl) currentPhaseEl.textContent = phaseText;
 
@@ -430,6 +436,77 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+// Validation function to ensure draft state is correct
+    function validateDraftState() {
+        const totalRadiantBans = draftState.radiant.bans.length;
+        const totalDireBans = draftState.dire.bans.length;
+        const totalRadiantPicks = draftState.radiant.picks.length;
+        const totalDirePicks = draftState.dire.picks.length;
+
+        console.log(`Draft validation: R-Bans:${totalRadiantBans}, D-Bans:${totalDireBans}, R-Picks:${totalRadiantPicks}, D-Picks:${totalDirePicks}`);
+
+        // Should end with 6 bans and 5 picks per team
+        if (isDraftComplete) {
+            if (totalRadiantBans !== 6 || totalDireBans !== 6 ||
+                totalRadiantPicks !== 5 || totalDirePicks !== 5) {
+                console.warn('Draft completed with incorrect counts!');
+            } else {
+                console.log('✅ Draft completed with correct ban/pick counts');
+            }
+        }
+    }
+
+// Call validation after each selection
+    function selectHero(heroId, heroName) {
+        if (isDraftComplete || isCalculatingWinRates) return;
+
+        // Follow draft order
+        if (draftState.step < draftOrder.length) {
+            const currentDraftStep = draftOrder[draftState.step];
+            draftState.currentTeam = currentDraftStep.team;
+            draftState.currentAction = currentDraftStep.action;
+        }
+
+        // Add hero to current team's selections
+        const actionType = draftState.currentAction + 's';
+        draftState[draftState.currentTeam][actionType].push({
+            id: heroId,
+            name: heroName
+        });
+
+        // Update UI immediately
+        updateDraftUI();
+        updateHeroAvailability(heroId, false);
+
+        // Move to next step
+        draftState.step++;
+
+        // CHECK IF DRAFT IS COMPLETE
+        if (draftState.step >= draftOrder.length) {
+            isDraftComplete = true;
+            console.log('🎉 Draft completed!');
+
+            // Update team indicators
+            document.getElementById('radiant-phase').textContent = 'Draft Complete';
+            document.getElementById('dire-phase').textContent = 'Draft Complete';
+
+            // Show final analysis after a short delay
+            setTimeout(() => {
+                showFinalDraftAnalysis();
+            }, 500);
+
+            return; // Don't continue with recommendations
+        }
+
+        // Continue with normal flow if draft not complete
+        updateTeamIndicator();
+
+        // Request recommendations for next step
+        setTimeout(() => {
+            requestRecommendations();
+        }, 100);
+    }
+
     function resetDraft() {
         draftState.step = 0;
         draftState.radiant.picks = [];
@@ -438,7 +515,9 @@ document.addEventListener('DOMContentLoaded', function() {
         draftState.dire.bans = [];
         isDraftComplete = false;
 
-        updateDraftUI();
+        // Reset to original template state - restore draft order numbers
+        resetToOriginalTemplate();
+
         updateTeamIndicator();
         resetHeroWinRates();
 
@@ -470,10 +549,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (originalData) {
                     winRateEl.textContent = originalData.originalWinRate;
                 }
-
-                heroCard.style.border = '';
-                heroCard.style.boxShadow = '';
             }
+
+            heroCard.style.border = '';
+            heroCard.style.boxShadow = '';
         });
     }
 
@@ -509,20 +588,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function showLoadingRecommendations() {
         const container = document.getElementById('hero-recommendations');
         if (container) {
-            container.innerHTML = '<div class="loading">🧠 AI analyzing draft and sorting heroes by win rate...</div>';
-        }
-    }
-
-    function showFinalDraftAnalysis() {
-        const container = document.getElementById('hero-recommendations');
-        if (container) {
             container.innerHTML = `
-                <div class="draft-complete">
-                    <h3>🎉 Draft Complete!</h3>
-                    <p>Heroes are sorted by win rate - highest first!</p>
-                    <button onclick="location.reload()" class="btn">Start New Draft</button>
-                </div>
-            `;
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>🧠 AI calculating win rates for all heroes...</p>
+                <p><small>Please wait, this may take a few seconds</small></p>
+            </div>
+        `;
         }
     }
 
@@ -534,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = '<p>No recommendations available.</p>';
             return;
         }
-        // Your existing recommendation display code here
+
         recommendations.forEach(hero => {
             const heroCard = document.createElement('div');
             heroCard.className = 'hero-card recommendation-card';
@@ -630,5 +702,261 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error checking model status:', error);
             });
+    }
+
+    function showLoadingMessage() {
+        // Create or update loading toast
+        let loadingToast = document.getElementById('loading-toast');
+        if (!loadingToast) {
+            loadingToast = document.createElement('div');
+            loadingToast.id = 'loading-toast';
+            loadingToast.className = 'loading-toast';
+            document.body.appendChild(loadingToast);
+        }
+
+        loadingToast.textContent = '🧠 Please wait, AI is calculating win rates...';
+        loadingToast.classList.add('show');
+
+        // Auto-hide after 2 seconds
+        setTimeout(() => {
+            loadingToast.classList.remove('show');
+        }, 2000);
+    }
+// Enable/disable all interactive elements
+    function setLoadingState(isLoading) {
+        isCalculatingWinRates = isLoading;
+
+        // Update cursor and visual feedback
+        document.body.classList.toggle('calculating', isLoading);
+
+        // Update hero cards
+        document.querySelectorAll('.hero-card').forEach(heroCard => {
+            if (isLoading) {
+                heroCard.classList.add('disabled');
+                heroCard.style.cursor = 'wait';
+            } else {
+                heroCard.classList.remove('disabled');
+                heroCard.style.cursor = 'pointer';
+            }
+        });
+
+        // Update buttons
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.disabled = isLoading;
+            if (isLoading) {
+                button.style.cursor = 'wait';
+                button.style.opacity = '0.6';
+            } else {
+                button.style.cursor = 'pointer';
+                button.style.opacity = '1';
+            }
+        });
+    }
+
+    function showFinalDraftAnalysis() {
+        console.log('📊 Showing final draft analysis...');
+
+        const container = document.getElementById('hero-recommendations');
+        if (!container) {
+            console.error('Hero recommendations container not found!');
+            return;
+        }
+
+        // Show loading first
+        container.innerHTML = `
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>🧠 Analyzing final draft...</p>
+        </div>
+    `;
+
+        // Get final prediction
+        getFinalDraftPrediction()
+            .then(predictionData => {
+                console.log('Final prediction data:', predictionData);
+                displayFinalAnalysis(predictionData);
+            })
+            .catch(error => {
+                console.error('Error getting final prediction:', error);
+                displayFallbackAnalysis();
+            });
+    }
+
+    function displayFinalAnalysis(predictionData) {
+        const container = document.getElementById('hero-recommendations');
+
+        const { radiant_win_probability, dire_win_probability, analysis } = predictionData;
+
+        // Calculate percentages and winner
+        const radiantPercent = Math.round(radiant_win_probability * 100);
+        const direPercent = Math.round(dire_win_probability * 100);
+        const winningTeam = radiant_win_probability > dire_win_probability ? 'radiant' : 'dire';
+        const confidence = Math.abs(radiantPercent - direPercent);
+
+        // Determine confidence level
+        let confidenceText = '';
+        let confidenceIcon = '';
+        if (confidence >= 15) {
+            confidenceText = 'High Confidence';
+            confidenceIcon = '🎯';
+        } else if (confidence >= 8) {
+            confidenceText = 'Medium Confidence';
+            confidenceIcon = '⚖️';
+        } else {
+            confidenceText = 'Very Close Draft';
+            confidenceIcon = '🤔';
+        }
+
+        container.innerHTML = `
+        <div class="final-draft-analysis">
+            <h2>🏆 Final Draft Analysis</h2>
+            
+            <div class="win-prediction-card">
+                <div class="prediction-header">
+                    <h3>${confidenceIcon} Prediction: <span class="${winningTeam}-color">${winningTeam.toUpperCase()}</span> Favored</h3>
+                    <div class="confidence-badge ${confidence >= 15 ? 'high' : confidence >= 8 ? 'medium' : 'low'}">
+                        ${confidenceText}
+                    </div>
+                </div>
+                
+                <div class="probability-display">
+                    <div class="team-probability radiant ${winningTeam === 'radiant' ? 'winner' : ''}">
+                        <div class="team-name">RADIANT</div>
+                        <div class="probability-number">${radiantPercent}%</div>
+                        <div class="probability-bar">
+                            <div class="bar radiant-bar" style="width: ${radiantPercent}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="vs-divider">VS</div>
+                    
+                    <div class="team-probability dire ${winningTeam === 'dire' ? 'winner' : ''}">
+                        <div class="team-name">DIRE</div>
+                        <div class="probability-number">${direPercent}%</div>
+                        <div class="probability-bar">
+                            <div class="bar dire-bar" style="width: ${direPercent}%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-summary">
+                    <p><strong>📊 ML Analysis:</strong> ${analysis}</p>
+                    <p><strong>💡 Confidence:</strong> This prediction is based on ${confidence}% probability difference between teams.</p>
+                </div>
+            </div>
+            
+            <div class="draft-summary">
+                <h4>📋 Draft Summary</h4>
+                <div class="team-summary">
+                    <div class="team-comp radiant-comp">
+                        <h5>Radiant Team</h5>
+                        <div class="hero-lineup">
+                            ${getDraftSummaryHTML('radiant')}
+                        </div>
+                    </div>
+                    <div class="team-comp dire-comp">
+                        <h5>Dire Team</h5>
+                        <div class="hero-lineup">
+                            ${getDraftSummaryHTML('dire')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button onclick="location.reload()" class="btn primary">🔄 Start New Draft</button>
+            </div>
+        </div>
+    `;
+    }
+
+    function displayFallbackAnalysis() {
+        const container = document.getElementById('hero-recommendations');
+
+        container.innerHTML = `
+        <div class="final-draft-analysis">
+            <h2>🎉 Draft Complete!</h2>
+            
+            <div class="win-prediction-card">
+                <h3>Draft Successfully Completed</h3>
+                <p>Both teams have completed their hero selections!</p>
+                
+                <div class="draft-summary">
+                    <div class="team-summary">
+                        <div class="team-comp radiant-comp">
+                            <h5>Radiant Team</h5>
+                            <div class="hero-lineup">
+                                ${getDraftSummaryHTML('radiant')}
+                            </div>
+                        </div>
+                        <div class="team-comp dire-comp">
+                            <h5>Dire Team</h5>
+                            <div class="hero-lineup">
+                                ${getDraftSummaryHTML('dire')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button onclick="location.reload()" class="btn primary">🔄 Start New Draft</button>
+            </div>
+        </div>
+    `;
+    }
+
+
+// Get final prediction from the ML model
+    async function getFinalDraftPrediction() {
+        console.log('Getting final prediction...');
+
+        const finalDraftData = {
+            radiant: {
+                picks: draftState.radiant.picks.map(h => h.id),
+                bans: draftState.radiant.bans.map(h => h.id)
+            },
+            dire: {
+                picks: draftState.dire.picks.map(h => h.id),
+                bans: draftState.dire.bans.map(h => h.id)
+            },
+            currentTeam: 'radiant',
+            currentAction: 'pick'
+        };
+
+        console.log('Final draft data:', finalDraftData);
+
+        const response = await fetch('/api/counterpicks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalDraftData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('API response:', data);
+
+        return data.analysis;
+    }
+
+// Generate HTML for team composition summary
+    function getDraftSummaryHTML(team) {
+        const picks = draftState[team].picks;
+
+        if (!picks || picks.length === 0) {
+            return '<p>No heroes selected</p>';
+        }
+
+        return picks.map(hero => `
+        <div class="hero-summary">
+            <img src="/static/images/heroes/${hero.id}.jpg" alt="${hero.name}" 
+                 onerror="this.src='/static/images/heroes/placeholder.jpg'">
+            <span class="hero-name">${hero.name}</span>
+        </div>
+    `).join('');
     }
 });
