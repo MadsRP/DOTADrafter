@@ -1,4 +1,4 @@
-# data_collector.py - Functions to interact with the STRATZ API
+# data_collector.py - Functions to interact with the STRATZ API (FIXED)
 import requests
 import json
 import os
@@ -35,14 +35,18 @@ env_file_path = 'enviromentvariables.env'
 # Load the environment variables
 load_env_file(env_file_path)
 
-# Now access the variable
+# Now access the variable - FIXED
 API_TOKEN = os.environ.get("STRATZ_API_TOKEN")
 
 # Configuration
 API_URL = "https://api.stratz.com/graphql"
 
-print(f"API Token value: {os.getenv(API_TOKEN)}")
-print(f"API Token from environ: {os.environ.get('STRATZ_API_TOKEN')}")
+# FIXED: Print debug info correctly
+print(f"API Token loaded: {'Yes' if API_TOKEN else 'No'}")
+if API_TOKEN:
+    print(f"API Token starts with: {API_TOKEN[:10]}...")
+else:
+    print("No API token found - check your enviromentvariables.env file")
 
 
 def run_graphql_query(query, variables=None):
@@ -50,6 +54,10 @@ def run_graphql_query(query, variables=None):
     import requests
     import os
     import json
+
+    if not API_TOKEN:
+        print("ERROR: No API token available. Cannot make API requests.")
+        return None
 
     headers = {
         "Authorization": f"Bearer {API_TOKEN}",
@@ -62,7 +70,6 @@ def run_graphql_query(query, variables=None):
         request_data["variables"] = variables
 
     print(f"Making API request to {API_URL}")
-    print(f"Using API token: {API_TOKEN[:10]}..." if API_TOKEN else "No API token provided")
 
     try:
         response = requests.post(API_URL, json=request_data, headers=headers)
@@ -157,8 +164,8 @@ def fetch_hero_data(save_to_file=True):
             if "stats" in hero and hero["stats"] and "primaryAttribute" in hero["stats"]:
                 processed_hero["primaryAttribute"] = hero["stats"]["primaryAttribute"]
             else:
-                # Fallback to the mapping if stats isn't available
-                short_name = hero["shortName"]
+                # Fallback to default
+                processed_hero["primaryAttribute"] = "all"
 
             heroes.append(processed_hero)
     else:
