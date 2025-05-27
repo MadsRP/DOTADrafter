@@ -1,4 +1,4 @@
-# match_collector.py - Only check for 10 picks and winner
+# data_collector.py - Only check for 10 picks and winner
 import json
 import os
 import random
@@ -86,20 +86,21 @@ def generate_recent_match_ids(latest_match_id=8307478229, count=100):
     return match_ids[:count]
 
 
-def fetch_match_details_batch(match_ids, max_valid_matches=50):
-    """Fetch match details - only check for 10 picks and winner"""
-    print(f"📥 Fetching details for up to {len(match_ids)} matches (need {max_valid_matches} valid)...")
+def fetch_match_details_batch(candidate_ids, max_valid_matches=50):
+    """Fetch match details from candidate IDs - STEP 2"""
+    print(f"📥 Fetching details for {len(candidate_ids)} candidate match IDs...")
+    print(f"🎯 Target: {max_valid_matches} valid matches")
 
     valid_matches = []
     attempted = 0
 
-    for match_id in match_ids:
+    for match_id in candidate_ids:
         if len(valid_matches) >= max_valid_matches:
             print(f"✅ Got {max_valid_matches} valid matches, stopping")
             break
 
         attempted += 1
-        print(f"Fetching match {attempted}/{len(match_ids)}: {match_id}")
+        print(f"Fetching match {attempted}/{len(candidate_ids)}: {match_id}")
 
         # Simple STRATZ query - just get picks and winner
         query = """
@@ -139,7 +140,7 @@ def fetch_match_details_batch(match_ids, max_valid_matches=50):
                     valid_matches.append(match_data)
                     duration_min = (match_data.get('durationSeconds') or 0) // 60
                     winner = "Radiant" if match_data.get('didRadiantWin') else "Dire"
-                    print(f"✅ Match {match_id}: Valid! {len(picks)} picks, {winner} won, {duration_min} min")
+                    print(f"✅ Match {match_id}: Valid! {winner} won, {duration_min} min")
                 else:
                     print(f"⚠️ Match {match_id}: Uneven teams (R:{len(radiant_picks)} D:{len(dire_picks)})")
             else:
@@ -164,15 +165,15 @@ def fetch_match_details_batch(match_ids, max_valid_matches=50):
     return valid_matches
 
 
-def convert_to_training_format(matches):
-    """Convert STRATZ matches to training format"""
-    print(f"🔄 Converting {len(matches)} matches to training format...")
+def convert_to_training_format(raw_matches):
+    """Convert raw STRATZ matches to training format - STEP 3"""
+    print(f"🔄 Converting {len(raw_matches)} raw matches to training format...")
 
     training_data = []
 
-    for match in matches:
+    for match in raw_matches:
         try:
-            # Extract picks
+            # Extract picks and bans
             pick_bans = match.get('pickBans', [])
             picks = [pb for pb in pick_bans if pb and pb.get('isPick', False)]
             bans = [pb for pb in pick_bans if pb and not pb.get('isPick', True)]
@@ -188,8 +189,8 @@ def convert_to_training_format(matches):
                 "match_id": str(match['id']),
                 "radiant_picks": radiant_picks,
                 "dire_picks": dire_picks,
-                "radiant_bans": radiant_bans,  # Might be empty for unparsed matches
-                "dire_bans": dire_bans,  # Might be empty for unparsed matches
+                "radiant_bans": radiant_bans,  # Might be empty for some matches
+                "dire_bans": dire_bans,  # Might be empty for some matches
                 "radiant_won": 1 if match.get('didRadiantWin', False) else 0,
                 "duration_seconds": match.get('durationSeconds', 0),
                 "source": "real_stratz_api"
@@ -207,57 +208,46 @@ def convert_to_training_format(matches):
     return training_data
 
 
-def fetch_real_match_data(limit=50, latest_match_id=8307478229):
-    """Fetch real match data with simple criteria"""
-    print(f"🎮 Fetching {limit} real STRATZ matches...")
-    print(f"Starting from recent match ID: {latest_match_id}")
-    print("📋 Only checking for: 10 hero picks (5v5) + winner")
+def process_and_save_matches(raw_matches):
+    """Process raw matches and save to files - STEP 4"""
+    print(f"💾 Processing and saving {len(raw_matches)} matches...")
 
-    # Generate candidate IDs
-    candidate_ids = generate_recent_match_ids(latest_match_id, count=limit * 2)  # Generate more to find valid ones
+    if not raw_matches:
+        print("❌ No matches to process")
+        return []
 
-    # Fetch match details
-    matches = fetch_match_details_batch(candidate_ids, max_valid_matches=limit)
+    # Convert to training format
+    training_data = convert_to_training_format(raw_matches)
 
-    if matches:
-        # Convert to training format
-        training_data = convert_to_training_format(matches)
+    # Save training data
+    timestamp = int(time.time())
+    os.makedirs('data', exist_ok=True)
 
-        # Save both raw and training data
-        timestamp = int(time.time())
+    # Save training data (this is what we actually need)
+    training_filename = f'data/training_matches_general_{timestamp}.json'
+    with open(training_filename, 'w') as f:
+        json.dump(training_data, f, indent=2)
 
-        # Save raw matches
-        raw_filename = f'data/matches_simple_{timestamp}.json'
-        os.makedirs('data', exist_ok=True)
-        with open(raw_filename, 'w') as f:
-            json.dump(matches, f, indent=2)
+    print(f"💾 Saved {len(training_data)} training samples to {training_filename}")
+    print(f"🗑️ Raw match data not saved (only training format needed)")
 
-        # Save training data
-        training_filename = f'data/training_matches_simple_{timestamp}.json'
-        with open(training_filename, 'w') as f:
-            json.dump(training_data, f, indent=2)
+    # Show statistics
+    if training_data:
+        radiant_wins = sum(1 for m in training_data if m['radiant_won'] == 1)
+        win_rate = radiant_wins / len(training_data) * 100
+        avg_duration = sum(m['duration_seconds'] for m in training_data) / len(training_data) / 60
 
-        print(f"💾 Saved {len(matches)} raw matches to {raw_filename}")
-        print(f"💾 Saved {len(training_data)} training samples to {training_filename}")
+        print(f"📊 Training Data Quality:")
+        print(f"   Total matches: {len(training_data)}")
+        print(f"   Radiant win rate: {win_rate:.1f}%")
+        print(f"   Average duration: {avg_duration:.1f} minutes")
+        print(f"   All matches have complete 5v5 hero picks")
 
-        # Show statistics
-        if training_data:
-            radiant_wins = sum(1 for m in training_data if m['radiant_won'] == 1)
-            win_rate = radiant_wins / len(training_data) * 100
-            avg_duration = sum(m['duration_seconds'] for m in training_data) / len(training_data) / 60
+        # Check ban data availability
+        matches_with_bans = sum(1 for m in training_data if len(m['radiant_bans']) > 0 or len(m['dire_bans']) > 0)
+        print(f"   Matches with ban data: {matches_with_bans}/{len(training_data)} ({matches_with_bans / len(training_data) * 100:.1f}%)")
 
-            print(f"📊 Training Data Quality:")
-            print(f"   Total matches: {len(training_data)}")
-            print(f"   Radiant win rate: {win_rate:.1f}%")
-            print(f"   Average duration: {avg_duration:.1f} minutes")
-            print(f"   All matches have 5v5 hero picks")
-
-            # Check ban data availability
-            matches_with_bans = sum(1 for m in training_data if len(m['radiant_bans']) > 0 or len(m['dire_bans']) > 0)
-            print(
-                f"   Matches with ban data: {matches_with_bans}/{len(training_data)} ({matches_with_bans / len(training_data) * 100:.1f}%)")
-
-    return matches
+    return training_data
 
 
 def fetch_hero_data():
@@ -392,11 +382,11 @@ def fetch_hero_portraits(heroes):
 
 
 def main():
-    """Main data collection function"""
-    print("🎮 SIMPLE STRATZ DATA COLLECTOR")
-    print("=" * 40)
-    print("🎯 Strategy: Only check for 10 hero picks + winner")
-    print("📋 This should work with both parsed and unparsed matches")
+    """Main data collection orchestrator - CLEAR FLOW"""
+    print("🎮 DOTA 2 DRAFT PREDICTOR - DATA COLLECTOR")
+    print("=" * 50)
+    print("🎯 Strategy: Multi-step data collection process")
+    print("📋 Steps: Generate IDs → Fetch Matches → Process → Save")
 
     if not API_TOKEN:
         print("❌ No STRATZ API token found!")
@@ -405,32 +395,43 @@ def main():
 
     print(f"✅ API token loaded: {API_TOKEN[:10]}...")
 
-    # Fetch heroes
-    print("\n1️⃣ Fetching hero data...")
+    # STEP 0: Fetch heroes first
+    print("\n0️⃣ Fetching hero data...")
     heroes = fetch_hero_data()
+    fetch_hero_portraits(heroes)
 
-    print("\n📸 Downloading hero portraits...")
-    fetch_hero_portraits(heroes)  # Add this line
+    # STEP 1: Generate candidate match IDs
+    print(f"\n1️⃣ Generating candidate match IDs...")
+    latest_match_id = 8307478229  # Known recent match
+    target_matches = 400  # How many matches we want
+    candidate_ids = generate_recent_match_ids(latest_match_id, count=target_matches * 2)
 
-    # Fetch real matches
-    print(f"\n2️⃣ Fetching real match data...")
-    matches = fetch_real_match_data(limit=75, latest_match_id=8307478229)
+    # STEP 2: Fetch real match data from candidates
+    print(f"\n2️⃣ Fetching match details from candidates...")
+    raw_matches = fetch_match_details_batch(candidate_ids, max_valid_matches=target_matches)
 
-    if matches:
-        print(f"\n🎉 Success! Collected real STRATZ matches")
-        print("✅ All matches have complete 5v5 hero picks")
-        print("✅ All matches have winner data")
-        print("✅ Ready for ML training!")
+    # STEP 3: Process and save the results
+    print(f"\n3️⃣ Processing and saving results...")
+    training_data = process_and_save_matches(raw_matches)
+
+    # STEP 4: Final summary
+    print(f"\n🎉 DATA COLLECTION COMPLETE!")
+    print(f"=" * 50)
+    if training_data:
+        print(f"✅ Successfully collected {len(training_data)} training matches")
+        print(f"✅ All matches have complete 5v5 hero picks")
+        print(f"✅ All matches have winner data")
+        print(f"✅ Ready for ML training!")
 
         print(f"\n🚀 Next steps:")
-        print(f"1. Run: python real_data_training.py")
+        print(f"1. Run: python data_training.py")
         print(f"2. Your model will train on real Dota 2 match outcomes!")
     else:
-        print(f"\n⚠️ No valid matches found")
+        print(f"⚠️ No valid matches collected")
 
-    print(f"\n📊 Data Summary:")
+    print(f"\n📊 Final Summary:")
     print(f"Heroes: {len(heroes) if heroes else 0}")
-    print(f"Matches: {len(matches) if matches else 0}")
+    print(f"Training matches: {len(training_data) if training_data else 0}")
 
 
 if __name__ == "__main__":

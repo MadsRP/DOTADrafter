@@ -4,20 +4,24 @@ import os
 
 from flask import Flask, render_template, request, jsonify
 
-from match_collector import fetch_hero_data, fetch_hero_portraits
+from data_collector import fetch_hero_data, fetch_hero_portraits
 
 try:
     from dynamic_winrates_integration import get_hero_recommendations, get_draft_win_probabilities
+
     print("✅ Using dynamic_winrates_integration")
 except ImportError:
     try:
         from lightweight_integration import get_hero_recommendations, get_draft_win_probabilities
+
         print("✅ Using lightweight_integration")
     except ImportError:
         print("❌ No integration found - creating fallback functions")
 
+
         def get_hero_recommendations(draft_data):
             return []
+
 
         def get_draft_win_probabilities(draft_data):
             return {
@@ -27,6 +31,7 @@ except ImportError:
             }
 
 app = Flask(__name__)
+
 
 # Load or fetch hero data
 def get_hero_data():
@@ -41,11 +46,13 @@ def get_hero_data():
             json.dump(heroes, f)
         return heroes
 
+
 # Home page route
 @app.route('/')
 def index():
     hero_data = get_hero_data()
     return render_template('index.html', heroes=hero_data)
+
 
 # API endpoint to get counter picks - FIXED
 @app.route('/api/counterpicks', methods=['POST'])
@@ -95,6 +102,7 @@ def get_counterpicks():
                 'analysis': f'Error getting recommendations: {str(e)}'
             }
         }), 500
+
 
 # Model status endpoint
 @app.route('/api/model-status', methods=['GET'])

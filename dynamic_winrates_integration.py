@@ -1,8 +1,10 @@
 # dynamic_winrates_integration.py - Update all hero win rates dynamically
-import os
 import json
-from lightweight_ml_model import DotaDraftPredictorLight
+import os
 import time
+
+from ml_model import DotaDraftPredictorLight
+
 
 class DynamicWinRateEngine:
     def __init__(self, model_path='models/dota_draft_predictor'):
@@ -66,7 +68,8 @@ class DynamicWinRateEngine:
 
             # Calculate win rates for all available heroes
             hero_winrates = {}
-            baseline_prob = self._get_baseline_probability(radiant_picks, dire_picks, radiant_bans, dire_bans, current_team)
+            baseline_prob = self._get_baseline_probability(radiant_picks, dire_picks, radiant_bans, dire_bans,
+                                                           current_team)
 
             # Batch process heroes for efficiency
             for hero_id in available_heroes:
@@ -259,8 +262,10 @@ class DynamicWinRateEngine:
                 'analysis': 'Error analyzing draft'
             }
 
+
 # Global instance
 dynamic_engine = None
+
 
 def initialize_dynamic_engine():
     """Initialize the dynamic win rate engine"""
@@ -269,15 +274,18 @@ def initialize_dynamic_engine():
         dynamic_engine = DynamicWinRateEngine()
     return dynamic_engine
 
+
 def get_all_hero_winrates(draft_data):
     """Get win rates for all heroes - NEW FUNCTION"""
     engine = initialize_dynamic_engine()
     return engine.get_all_hero_winrates(draft_data)
 
+
 def get_hero_recommendations(draft_data):
     """Get top hero recommendations"""
     engine = initialize_dynamic_engine()
     return engine.get_recommendations(draft_data)
+
 
 def get_draft_win_probabilities(draft_data):
     """Get draft analysis"""
