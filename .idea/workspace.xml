@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e690a814-bc35-47cb-b4c9-aac89c82d4f4" name="Changes" comment="Trying to make final draft analysis work">
+    <list default="true" id="e690a814-bc35-47cb-b4c9-aac89c82d4f4" name="Changes" comment="works kind of">
+      <change afterPath="$PROJECT_DIR$/data_training.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/match_collector.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/balanced_training.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data_collector.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/static/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/app.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -108,7 +113,9 @@
       <workItem from="1748174585482" duration="5632000" />
       <workItem from="1748180309325" duration="1323000" />
       <workItem from="1748181660031" duration="546000" />
-      <workItem from="1748182223055" duration="404000" />
+      <workItem from="1748182223055" duration="446000" />
+      <workItem from="1748182766622" duration="3989000" />
+      <workItem from="1748336766044" duration="41000" />
     </task>
     <task id="LOCAL-00001" summary="Start of Project">
       <created>1744636337708</created>
@@ -180,7 +187,14 @@
       <option name="project" value="LOCAL" />
       <updated>1748179215811</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="works kind of">
+      <created>1748182646075</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1748182646075</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -204,7 +218,8 @@
     <MESSAGE value="Heroes can now be drafted to the drafter, and disappear after you click them." />
     <MESSAGE value="Works" />
     <MESSAGE value="Trying to make final draft analysis work" />
-    <option name="LAST_COMMIT_MESSAGE" value="Trying to make final draft analysis work" />
+    <MESSAGE value="works kind of" />
+    <option name="LAST_COMMIT_MESSAGE" value="works kind of" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/DOTADrafter$data_collector.coverage" NAME="data_collector Coverage Results" MODIFIED="1744715716749" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

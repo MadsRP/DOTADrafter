@@ -4,9 +4,8 @@ import os
 
 from flask import Flask, render_template, request, jsonify
 
-from data_collector import fetch_hero_data, fetch_hero_portraits
+from match_collector import fetch_hero_data, fetch_hero_portraits
 
-# FIXED: Use the correct integration that actually exists
 try:
     from dynamic_winrates_integration import get_hero_recommendations, get_draft_win_probabilities
     print("✅ Using dynamic_winrates_integration")
@@ -249,5 +248,3 @@ if __name__ == '__main__':
     print("- GET  /api/model-status: Check ML model status")
 
     app.run(debug=True)
-
-

@@ -880,7 +880,7 @@ function getDraftSummaryHTML(team) {
 document.addEventListener('DOMContentLoaded', function() {
 
     // Store attribute section containers for sorting
-    const attributeSections = {
+    attributeSections = {
         'str': document.querySelector('.strength .hero-grid'),
         'agi': document.querySelector('.agility .hero-grid'),
         'int': document.querySelector('.intelligence .hero-grid'),
