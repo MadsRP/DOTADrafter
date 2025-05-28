@@ -3,14 +3,13 @@ import json
 import pickle
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
 
 
-class DotaDraftPredictorLight:
+class DotaDraftPredictor:
     def __init__(self, max_hero_id=150):
         """
         Lightweight version using scikit-learn
@@ -79,7 +78,7 @@ class DotaDraftPredictorLight:
                 features[hero_id] = 0.5
 
         # Add composition features
-        composition_features = self._calculate_composition_features(
+        composition_features = self.calculate_composition_features(
             radiant_picks, dire_picks
         )
 
@@ -88,7 +87,7 @@ class DotaDraftPredictorLight:
 
         return full_features
 
-    def _calculate_composition_features(self, radiant_picks, dire_picks):
+    def calculate_composition_features(self, radiant_picks, dire_picks):
         """Calculate team composition features with None handling"""
         if not self.hero_data:
             return np.zeros(8)
@@ -187,7 +186,6 @@ class DotaDraftPredictorLight:
         print(f"Radiant win rate in training data: {np.mean(y):.3f}")
 
         return X, y
-
 
     def train(self, training_data, test_size=0.2):
         print("Starting DNN training process...")
@@ -335,61 +333,6 @@ class DotaDraftPredictorLight:
                 'dire_win_probability': 0.5
             }
 
-    def recommend_heroes(self, current_team, radiant_picks, dire_picks, radiant_bans, dire_bans,
-                         available_heroes=None, top_k=5):
-        """Recommend heroes with error handling"""
-        if self.model is None:
-            raise ValueError("Model not trained yet!")
-
-        if available_heroes is None:
-            picked_banned = set()
-            for hero_list in [radiant_picks, dire_picks, radiant_bans, dire_bans]:
-                if hero_list:
-                    picked_banned.update([h for h in hero_list if h is not None])
-
-            available_heroes = [i for i in range(1, self.max_hero_id + 1)
-                                if i not in picked_banned]
-
-        recommendations = []
-
-        for hero_id in available_heroes[:50]:  # Limit to first 50 to avoid timeout
-            try:
-                # Test adding this hero
-                test_radiant_picks = (radiant_picks or []).copy()
-                test_dire_picks = (dire_picks or []).copy()
-
-                if current_team == 'radiant':
-                    test_radiant_picks.append(hero_id)
-                else:
-                    test_dire_picks.append(hero_id)
-
-                # Get win probability
-                prediction = self.predict_win_probability(
-                    test_radiant_picks, test_dire_picks, radiant_bans or [], dire_bans or []
-                )
-
-                win_prob = (prediction['radiant_win_probability'] if current_team == 'radiant'
-                            else prediction['dire_win_probability'])
-
-                hero_name = "Unknown Hero"
-                if self.hero_data and hero_id in self.hero_data:
-                    hero_name = self.hero_data[hero_id].get('displayName', f'Hero {hero_id}')
-
-                recommendations.append({
-                    'id': hero_id,
-                    'name': hero_name,
-                    'winRate': round(win_prob * 100, 1),
-                    'reasons': f'Increases {current_team} win probability'
-                })
-
-            except Exception as e:
-                print(f"⚠️ Error recommending hero {hero_id}: {e}")
-                continue
-
-        # Sort and return top k
-        recommendations.sort(key=lambda x: x['winRate'], reverse=True)
-        return recommendations[:top_k]
-
     def save_model(self, filepath):
         """Save the model"""
         if self.model is None:
@@ -443,7 +386,7 @@ if __name__ == "__main__":
         }
     ]
 
-    predictor = DotaDraftPredictorLight()
+    predictor = DotaDraftPredictor()
     try:
         X, y = predictor.prepare_training_data(test_data)
         print(f"✅ Test passed: Feature shape {X.shape}, Labels shape {y.shape}")

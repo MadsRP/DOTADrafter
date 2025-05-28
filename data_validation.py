@@ -1,8 +1,8 @@
-# data_training.py - Train ML model on already collected STRATZ data
+# data_validation.py - Train ML model on already collected STRATZ data
 import json
 import os
 
-from ml_model import DotaDraftPredictorLight
+from ml_model import DotaDraftPredictor
 
 
 def load_existing_training_data():
@@ -210,7 +210,6 @@ def analyze_hero_frequency(training_data, min_appearances=15):
     }
 
 
-# Updated analyze_training_data function - add this to your data_training.py
 def analyze_training_data(training_data):
     """Analyze the training data quality - UPDATED VERSION"""
     print(f"\n📈 TRAINING DATA ANALYSIS")
@@ -286,7 +285,7 @@ def main():
         print("🔧 Please run the following steps:")
         print("   1. Run: python match_collector.py")
         print("   2. Wait for data collection to complete")
-        print("   3. Run: python data_training.py")
+        print("   3. Run: python data_validation.py")
         return
 
     # Step 2: Validate the data
@@ -306,7 +305,7 @@ def main():
     print(f"\n4️⃣ Training Deep Neural Network on {len(validated_data)} matches...")
 
     # Initialize and train the model
-    predictor = DotaDraftPredictorLight()
+    predictor = DotaDraftPredictor()
 
     try:
         print("🧠 Training Deep Neural Network...")

@@ -3,8 +3,8 @@ let draftState = {
     currentTeam: 'radiant',
     currentAction: 'pick',
     step: 0,
-    radiant: { picks: [], bans: [] },
-    dire: { picks: [], bans: [] }
+    radiant: {picks: [], bans: []},
+    dire: {picks: [], bans: []}
 };
 
 let isCalculatingWinRates = false;
@@ -13,19 +13,19 @@ let isDraftComplete = false;
 
 // DRAFT ORDER (global)
 const draftOrder = [
-    { team: 'radiant', action: 'ban' }, { team: 'dire', action: 'ban' },
-    { team: 'dire', action: 'ban' }, { team: 'radiant', action: 'ban' },
-    { team: 'dire', action: 'ban' }, { team: 'dire', action: 'ban' },
-    { team: 'radiant', action: 'ban' },
-    { team: 'radiant', action: 'pick' }, { team: 'dire', action: 'pick' },
-    { team: 'radiant', action: 'ban' }, { team: 'radiant', action: 'ban' },
-    { team: 'dire', action: 'ban' },
-    { team: 'dire', action: 'pick' }, { team: 'radiant', action: 'pick' },
-    { team: 'radiant', action: 'pick' }, { team: 'dire', action: 'pick' },
-    { team: 'dire', action: 'pick' }, { team: 'radiant', action: 'pick' },
-    { team: 'radiant', action: 'ban' }, { team: 'dire', action: 'ban' },
-    { team: 'dire', action: 'ban' }, { team: 'radiant', action: 'ban' },
-    { team: 'radiant', action: 'pick' }, { team: 'dire', action: 'pick' }
+    {team: 'radiant', action: 'ban'}, {team: 'dire', action: 'ban'},
+    {team: 'dire', action: 'ban'}, {team: 'radiant', action: 'ban'},
+    {team: 'dire', action: 'ban'}, {team: 'dire', action: 'ban'},
+    {team: 'radiant', action: 'ban'},
+    {team: 'radiant', action: 'pick'}, {team: 'dire', action: 'pick'},
+    {team: 'radiant', action: 'ban'}, {team: 'radiant', action: 'ban'},
+    {team: 'dire', action: 'ban'},
+    {team: 'dire', action: 'pick'}, {team: 'radiant', action: 'pick'},
+    {team: 'radiant', action: 'pick'}, {team: 'dire', action: 'pick'},
+    {team: 'dire', action: 'pick'}, {team: 'radiant', action: 'pick'},
+    {team: 'radiant', action: 'ban'}, {team: 'dire', action: 'ban'},
+    {team: 'dire', action: 'ban'}, {team: 'radiant', action: 'ban'},
+    {team: 'radiant', action: 'pick'}, {team: 'dire', action: 'pick'}
 ];
 
 // ATTRIBUTE SECTIONS (global)
@@ -34,7 +34,7 @@ let attributeSections = {};
 function initializeEventListeners() {
     // Add click handlers to all hero cards
     document.querySelectorAll('.hero-card').forEach(heroCard => {
-        heroCard.addEventListener('click', function() {
+        heroCard.addEventListener('click', function () {
             // PREVENT CLICKS during ML calculation
             if (isCalculatingWinRates) {
                 showLoadingMessage();
@@ -62,7 +62,7 @@ function initializeEventListeners() {
     });
 
     // Rest of event listeners (same as before)
-    document.getElementById('reset-draft')?.addEventListener('click', function() {
+    document.getElementById('reset-draft')?.addEventListener('click', function () {
         if (isCalculatingWinRates) {
             showLoadingMessage();
             return;
@@ -70,7 +70,7 @@ function initializeEventListeners() {
         resetDraft();
     });
 
-    document.getElementById('next-step')?.addEventListener('click', function() {
+    document.getElementById('next-step')?.addEventListener('click', function () {
         if (isCalculatingWinRates) {
             showLoadingMessage();
             return;
@@ -78,7 +78,7 @@ function initializeEventListeners() {
         nextStep();
     });
 
-    document.getElementById('hero-search')?.addEventListener('input', function() {
+    document.getElementById('hero-search')?.addEventListener('input', function () {
         const searchTerm = this.value.toLowerCase();
         document.querySelectorAll('.hero-card').forEach(heroCard => {
             const img = heroCard.querySelector('img');
@@ -180,16 +180,16 @@ function requestRecommendations() {
     // Make TWO API calls: one for recommendations, one for all hero win rates
     Promise.all([
         // Get recommendations
-        fetch('/api/counterpicks', {
+        fetch('/api/analysis', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(requestData)
         }).then(response => response.json()),
 
         // Get ALL hero win rates
         fetch('/api/hero-winrates', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(requestData)
         }).then(response => response.json())
     ])
@@ -316,6 +316,7 @@ function sortHeroesByWinRate(heroesData) {
         }
     });
 }
+
 // Keep all other functions the same (updateDraftUI, resetDraft, etc.)
 function updateDraftUI() {
     updateTeamSelections('radiant', 'picks');
@@ -323,6 +324,7 @@ function updateDraftUI() {
     updateTeamSelections('dire', 'picks');
     updateTeamSelections('dire', 'bans');
 }
+
 // Update the HTML template to match - you'll need 6 ban slots per team
 function updateTeamSelections(team, actionType) {
     const container = document.getElementById(`${team}-${actionType}`);
@@ -349,6 +351,7 @@ function updateTeamSelections(team, actionType) {
         }
     });
 }
+
 // Update the phase indicator to be more descriptive
 function updateTeamIndicator() {
     if (draftState.step < draftOrder.length && !isDraftComplete) {
@@ -393,6 +396,7 @@ function updateTeamIndicator() {
         document.getElementById('dire-phase').textContent = 'Draft Complete';
     }
 }
+
 // Call validation after each selection
 function selectHero(heroId, heroName) {
     if (isDraftComplete || isCalculatingWinRates) return;
@@ -562,7 +566,7 @@ function displayRecommendations(recommendations) {
                 </div>
             `;
 
-        heroCard.addEventListener('click', function() {
+        heroCard.addEventListener('click', function () {
             if (isDraftComplete) {
                 alert('Draft is complete! Use Reset Draft to start over.');
                 return;
@@ -614,33 +618,6 @@ function displayDraftAnalysis(analysis) {
         `;
 }
 
-function checkModelStatus() {
-    fetch('/api/model-status')
-        .then(response => response.json())
-        .then(data => {
-            let statusEl = document.getElementById('model-status');
-            if (!statusEl) {
-                statusEl = document.createElement('div');
-                statusEl.id = 'model-status';
-                statusEl.className = 'model-status';
-                document.querySelector('.container').prepend(statusEl);
-            }
-
-            if (data.model_trained) {
-                statusEl.innerHTML = '🧠 ML Model: Active & Dynamic Win Rates';
-                statusEl.className = 'model-status active';
-            } else {
-                statusEl.innerHTML = '⚠️ ML Model: Training Needed';
-                statusEl.className = 'model-status inactive';
-            }
-
-            console.log('Model Status:', data);
-        })
-        .catch(error => {
-            console.error('Error checking model status:', error);
-        });
-}
-
 function showLoadingMessage() {
     // Create or update loading toast
     let loadingToast = document.getElementById('loading-toast');
@@ -659,6 +636,7 @@ function showLoadingMessage() {
         loadingToast.classList.remove('show');
     }, 2000);
 }
+
 // Enable/disable all interactive elements
 function setLoadingState(isLoading) {
     isCalculatingWinRates = isLoading;
@@ -728,13 +706,12 @@ function showFinalDraftAnalysis() {
     if (container) {
         // Get final draft prediction
         getFinalDraftPrediction().then(predictionData => {
-            const { radiant_win_probability, dire_win_probability, analysis, detailed_analysis } = predictionData;
+            const {radiant_win_probability, dire_win_probability, analysis, detailed_analysis} = predictionData;
 
             // Determine winning team
             const radiantPercent = Math.round(radiant_win_probability * 100);
             const direPercent = Math.round(dire_win_probability * 100);
             const winningTeam = radiant_win_probability > dire_win_probability ? 'radiant' : 'dire';
-            const winningPercent = winningTeam === 'radiant' ? radiantPercent : direPercent;
             const confidence = Math.abs(radiantPercent - direPercent);
 
             // Get confidence level
@@ -845,9 +822,9 @@ async function getFinalDraftPrediction() {
 
     console.log('Final draft data:', finalDraftData);
 
-    const response = await fetch('/api/counterpicks', {
+    const response = await fetch('/api/analysis', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(finalDraftData)
     });
 
@@ -877,7 +854,8 @@ function getDraftSummaryHTML(team) {
         </div>
     `).join('');
 }
-document.addEventListener('DOMContentLoaded', function() {
+
+document.addEventListener('DOMContentLoaded', function () {
 
     // Store attribute section containers for sorting
     attributeSections = {
@@ -892,7 +870,6 @@ document.addEventListener('DOMContentLoaded', function() {
     captureOriginalHeroData();
     updateDraftUI();
     updateTeamIndicator();
-    checkModelStatus();
     requestRecommendations();
 
 });

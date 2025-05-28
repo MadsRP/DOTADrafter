@@ -3,12 +3,12 @@ import json
 import os
 import time
 
-from ml_model import DotaDraftPredictorLight
+from ml_model import DotaDraftPredictor
 
 
 class DynamicWinRateEngine:
     def __init__(self, model_path='models/dota_draft_predictor'):
-        self.predictor = DotaDraftPredictorLight()
+        self.predictor = DotaDraftPredictor()
         self.model_loaded = False
         self.model_path = model_path
         self.hero_cache = {}  # Cache hero data
@@ -44,8 +44,6 @@ class DynamicWinRateEngine:
         Calculate win rates for ALL available heroes given the current draft state
         This is the main function that updates all heroes at once
         """
-        if not self.model_loaded:
-            return self._get_fallback_winrates(draft_state)
 
         start_time = time.time()
 
@@ -110,7 +108,6 @@ class DynamicWinRateEngine:
 
         except Exception as e:
             print(f"❌ Error calculating dynamic win rates: {e}")
-            return self._get_fallback_winrates(draft_state)
 
     def _get_baseline_probability(self, radiant_picks, dire_picks, radiant_bans, dire_bans, current_team):
         """Get baseline win probability for current draft state"""
@@ -129,94 +126,6 @@ class DynamicWinRateEngine:
         improvement = raw_prob - baseline_prob
         calibrated = 50 + (improvement * 80)  # Scale improvement
         return max(25, min(75, calibrated))  # Bound between 25-75%
-
-    def _get_fallback_winrates(self, draft_state):
-        """Fallback win rates when ML model isn't available"""
-        print("Using fallback win rates (no ML model)")
-
-        hero_winrates = {}
-        unavailable_hero_ids = set(
-            draft_state['radiant']['picks'] +
-            draft_state['dire']['picks'] +
-            draft_state['radiant']['bans'] +
-            draft_state['dire']['bans']
-        )
-
-        for hero_id in self.hero_cache.keys():
-            if hero_id in unavailable_hero_ids:
-                hero_winrates[hero_id] = 0.0  # Unavailable
-            else:
-                # Simple fallback calculation
-                base_rate = 45 + (hash(str(hero_id)) % 20)  # 45-65% range
-                hero_winrates[hero_id] = round(base_rate, 1)
-
-        return hero_winrates
-
-    def get_recommendations(self, draft_state):
-        """Get top recommendations (separate from all win rates)"""
-        if not self.model_loaded:
-            return self._get_simple_recommendations(draft_state)
-
-        try:
-            # Get all win rates
-            all_winrates = self.get_all_hero_winrates(draft_state)
-
-            # Filter to available heroes and sort by win rate
-            available_heroes = [(hid, rate) for hid, rate in all_winrates.items() if rate > 0]
-            available_heroes.sort(key=lambda x: x[1], reverse=True)
-
-            # Create recommendation format
-            recommendations = []
-            for hero_id, win_rate in available_heroes[:10]:  # Top 10
-                hero_name = self.hero_cache.get(hero_id, {}).get('displayName', 'Unknown Hero')
-
-                recommendations.append({
-                    'id': hero_id,
-                    'name': hero_name,
-                    'winRate': win_rate,
-                    'reasons': self._get_recommendation_reason(win_rate, draft_state['currentTeam'])
-                })
-
-            return recommendations
-
-        except Exception as e:
-            print(f"Error getting recommendations: {e}")
-            return self._get_simple_recommendations(draft_state)
-
-    def _get_recommendation_reason(self, win_rate, current_team):
-        """Generate reason based on win rate"""
-        if win_rate >= 65:
-            return f"Excellent synergy for {current_team}"
-        elif win_rate >= 55:
-            return f"Strong pick for {current_team}"
-        elif win_rate >= 45:
-            return f"Balanced choice for {current_team}"
-        else:
-            return f"Situational pick for {current_team}"
-
-    def _get_simple_recommendations(self, draft_state):
-        """Simple recommendations fallback"""
-        recommendations = []
-        unavailable_ids = set(
-            draft_state['radiant']['picks'] +
-            draft_state['dire']['picks'] +
-            draft_state['radiant']['bans'] +
-            draft_state['dire']['bans']
-        )
-
-        count = 0
-        for hero_id, hero_data in self.hero_cache.items():
-            if hero_id not in unavailable_ids and count < 10:
-                win_rate = 45 + (hash(hero_data['displayName']) % 20)
-                recommendations.append({
-                    'id': hero_id,
-                    'name': hero_data['displayName'],
-                    'winRate': round(win_rate, 1),
-                    'reasons': 'Estimated recommendation'
-                })
-                count += 1
-
-        return recommendations
 
     def get_draft_analysis(self, draft_state):
         """Get draft analysis"""
@@ -279,12 +188,6 @@ def get_all_hero_winrates(draft_data):
     """Get win rates for all heroes - NEW FUNCTION"""
     engine = initialize_dynamic_engine()
     return engine.get_all_hero_winrates(draft_data)
-
-
-def get_hero_recommendations(draft_data):
-    """Get top hero recommendations"""
-    engine = initialize_dynamic_engine()
-    return engine.get_recommendations(draft_data)
 
 
 def get_draft_win_probabilities(draft_data):
